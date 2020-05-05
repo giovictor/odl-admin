@@ -4,28 +4,18 @@
             <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
             <v-toolbar-title class="subtitle-1">Orlando's Des Legumes</v-toolbar-title>
             <v-spacer></v-spacer>
-            <v-menu offset-y>
-                <template v-slot:activator="{ on }">
-                    <v-btn icon v-on="on">
-                        <v-icon>mdi-menu-down</v-icon>
-                    </v-btn>
-                </template>
-                <v-list dense>
-                    <v-list-item>
-                        <v-list-item-title>
-                            <router-link to="/profile" class="body-2 grey--text text--darken-4">Profile</router-link>
-                        </v-list-item-title>
-                    </v-list-item>
-                    <v-list-item>
-                        <v-list-item-title>
-                            <a href="#" class="body-2 grey--text text--darken-4">Logout</a>
-                        </v-list-item-title>
-                    </v-list-item>
-                </v-list>
-            </v-menu>
+            <v-btn icon>
+                <v-icon>mdi-bell</v-icon>
+            </v-btn>
+            <v-btn icon>
+                <v-icon>mdi-cog</v-icon>
+            </v-btn>
+            <v-btn icon @click="logout">
+                <v-icon>mdi-logout</v-icon>
+            </v-btn>
         </v-app-bar>
 
-        <v-navigation-drawer app clipped color="#ffffff" v-model="drawer">
+        <v-navigation-drawer app clipped dark v-model="drawer" class="py-4">
             <v-list dense>
                 <router-link class="grey--text text--darken-4" :to="page.link" v-for="page in pages" :key="page.title">
                     <v-list-item link>
@@ -39,10 +29,14 @@
                 </router-link>
             </v-list>
         </v-navigation-drawer>
+        <slot></slot>
     </div>
 </template>
 
 <script>
+import axios from '../plugins/axios'
+import Cookies from 'js-cookie'
+
 export default {
     data() {
         return {
@@ -70,6 +64,18 @@ export default {
                 },
             ]
         }
+    },
+    methods: {
+        logout() {
+            axios.post('auth/logout', {})
+            .then(() => {
+                Cookies.remove('access_token')
+                this.$router.go('/login')
+            })
+            .catch(err => {
+                console.log(err)
+            }) 
+        }
     }
 }
 </script>
@@ -77,5 +83,13 @@ export default {
 <style>
     a {
         text-decoration: none;
+    }
+
+    .logo {
+        border-radius: 50%;
+        width: 80px;
+        height: 80px;
+        margin:0 auto;
+        display: block;
     }
 </style>
