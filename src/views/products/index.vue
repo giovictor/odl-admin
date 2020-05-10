@@ -1,10 +1,9 @@
 <template>
     <div class="products pa-6">
         <v-container>
-            <v-btn color="#e9954b" class="mb-4" dark>
-                <v-icon left>mdi-plus</v-icon>
-                <span class="caption">Add Product</span>
-            </v-btn>
+            <add-dialog label="Add Product">
+                <product-form></product-form>
+            </add-dialog>
             <v-row>
                 <v-col>
                     <p class="title">Products</p>
@@ -16,14 +15,18 @@
             </v-row>
             <v-data-table :headers="headers" :items="products" :items-per-page="10" :search="search" :loading="isLoadingProduct" loading-text="Loading Products">
                 <template v-slot:item.categories="{ item }">
-                    <template v-for="category in item.categories">{{category.name}}</template>
+                    <div v-for="(category, index) in item.categories" :key="category.id">{{category.name}}<span v-if="index + 1 < item.categories.length">,</span></div>
                 </template>
                 <template v-slot:item.is_featured="{ item }">
                     <v-switch false-value="0" true-value="1" v-model="item.is_featured"></v-switch>
                 </template>
                 <template v-slot:item.actions="{ item }">
-                    <v-icon small :id="item.id">mdi-pencil</v-icon>
-                    <v-icon small :id="item.id">mdi-delete</v-icon>
+                    <update-dialog>
+                        <product-form :id="item.id"></product-form>
+                    </update-dialog>
+                    <v-btn icon>
+                        <v-icon small :id="item.id">mdi-delete</v-icon>
+                    </v-btn>
                 </template>
             </v-data-table>
         </v-container>
@@ -32,9 +35,17 @@
 
 <script>
 import axios from '../../plugins/axios'
+import AddDialog from '../../components/AddDialog'
+import UpdateDialog from '../../components/UpdateDialog'
+import ProductForm from './ProductForm'
 
 export default {
     name: 'Products',
+    components: {
+        AddDialog,
+        UpdateDialog,
+        ProductForm
+    },
     data() {
         return {
             products: [],

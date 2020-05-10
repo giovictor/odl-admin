@@ -8,7 +8,7 @@
 import Layout from '../components/Layout'
 
 export default {
-    name: 'Dashboard',
+    name: 'Home',
     components: {
         Layout
     }
