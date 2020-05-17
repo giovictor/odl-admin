@@ -1,10 +1,9 @@
 <template>
     <div class="categories pa-6">
         <v-container>
-            <v-btn color="#e9954b" class="mb-4" dark>
-                <v-icon left>mdi-plus</v-icon>
-                <span class="caption">Add Category</span>
-            </v-btn>
+            <add-dialog label="Add Category">
+                <category-form></category-form>
+            </add-dialog>
             <v-row>
                 <v-col>
                     <p class="title">Categories</p>
@@ -16,42 +15,67 @@
             </v-row>
             <v-data-table :headers="headers" :items="categories" :items-per-page="10" :search="search" :loading="isLoadingCategories" loading-text="Loading Categories">
                 <template v-slot:item.actions="{ item }">
-                    <v-icon small :id="item.id">mdi-pencil</v-icon>
-                    <v-icon small :id="item.id">mdi-delete</v-icon>
+                    <update-dialog>
+                        <category-form :id="item.id"></category-form>
+                    </update-dialog>
+                    <delete-dialog label="category" :id="item.id" @delete="deleteCategory"></delete-dialog>
                 </template>
             </v-data-table>
+            <snackbar></snackbar>
         </v-container>
     </div>
 </template>
 
 <script>
+import { mapState } from 'vuex'
 import axios from '../../plugins/axios'
+import bus from '../../helpers/eventBus'
+import AddDialog from '../../components/AddDialog'
+import UpdateDialog from '../../components/UpdateDialog'
+import DeleteDialog from '../../components/DeleteDialog'
+import Snackbar from '../../components/Snackbar'
+import CategoryForm from './CategoryForm'
 
 export default {
     name: 'Categories',
+    components: {
+        AddDialog,
+        UpdateDialog,
+        DeleteDialog,
+        Snackbar,
+        CategoryForm
+    },
     data() {
         return {
-            categories: [],
             headers: [
                 { text: 'Category ID', value: 'id'},
                 { text: 'Category Name', value: 'name'},
                 { text: 'Actions', value: 'actions'}
             ], 
             search: '',
-            isLoadingCategories: true
         }
     },
+    computed: {
+        ...mapState('categories', ['categories', 'isLoadingCategories'])
+    },
     mounted() {
-        this.getCategories()
+        this.$store.dispatch('categories/getCategories')
     },
     methods: {
-        getCategories() {
-            axios.get('categories')
-            .then(response => {
-                this.categories = response.data.data
-                this.isLoadingCategories = false
-            })
-            .catch(err => console.log(err))
+        async deleteCategory(id) {
+            bus.$emit('IS_DELETING', true)
+            try {
+                let response = await axios.delete(`categories/${id}`)
+                await this.$store.dispatch('categories/getCategories')
+                bus.$emit('SHOW_SNACKBAR', { color: 'success', text: response.data.message })
+                bus.$emit('CLOSE_DIALOG')
+                bus.$emit('IS_DELETING', false)
+            } catch(err) {
+                console.log(err)
+                bus.$emit('SHOW_SNACKBAR', { color: 'error', text: err.response.data.message })
+                bus.$emit('CLOSE_DIALOG')
+                bus.$emit('IS_DELETING', false)
+            }
         }
     }
 }
